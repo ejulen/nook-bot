@@ -140,7 +140,7 @@ async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
  * @param {import('eris').Client} bot
  */
 function setupTurnipPriceClearer(bot) {
-  const cronPattern = "0 12 * * *";
+  const cronPattern = "0 0,12 * * *";
   new CronJob(
     cronPattern,
     () => {
