@@ -116,7 +116,7 @@ async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
       : []),
     ...newPrices
   ];
-  await pinnedMessage.edit(createTurnipPriceList(newPrices));
+  await pinnedMessage.edit(createTurnipPriceList(result));
   if (result.length > 0) {
     await channel.edit({
       topic: `Högsta pris just nu: ${result[0].parsedPrice} från ${result[0].userMention}`,
