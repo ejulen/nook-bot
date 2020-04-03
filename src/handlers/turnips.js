@@ -115,7 +115,7 @@ async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
         )
       : []),
     ...newPrices
-  ];
+  ].sort((a, b) => b.parsedPrice - a.parsedPrice);
   await pinnedMessage.edit(createTurnipPriceList(result));
   if (result.length > 0) {
     await channel.edit({
@@ -141,30 +141,36 @@ async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
  */
 function setupTurnipPriceClearer(bot) {
   const cronPattern = "0 0,12 * * *";
-  new CronJob(cronPattern, () => {
-    lock.acquire(async () => {
-      const turnipChannel = bot.guilds
-        .find(guild => guild.id === GUILD_ID)
-        .channels.find(channel => channel.id === TURNIP_CHANNEL_ID);
+  new CronJob(
+    cronPattern,
+    () => {
+      lock.acquire(async () => {
+        const turnipChannel = bot.guilds
+          .find(guild => guild.id === GUILD_ID)
+          .channels.find(channel => channel.id === TURNIP_CHANNEL_ID);
 
-      if (
-        !turnipChannel ||
-        turnipChannel.type !== Eris.Constants.ChannelTypes.GUILD_TEXT
-      ) {
-        console.error(
-          "setupTurnipPriceClearer: Could not find turnip channel."
-        );
-        return;
-      }
-      await turnipChannel.createMessage("Nu tömmer jag prislistan!");
-      await updateTurnipPrices({
-        bot,
-        channel: turnipChannel,
-        newPrices: [],
-        append: false
+        if (
+          !turnipChannel ||
+          turnipChannel.type !== Eris.Constants.ChannelTypes.GUILD_TEXT
+        ) {
+          console.error(
+            "setupTurnipPriceClearer: Could not find turnip channel."
+          );
+          return;
+        }
+        await turnipChannel.createMessage("Nu tömmer jag prislistan!");
+        await updateTurnipPrices({
+          bot,
+          channel: turnipChannel,
+          newPrices: [],
+          append: false
+        });
       });
-    });
-  }, null, true, 'Europe/Stockholm');
+    },
+    null,
+    true,
+    "Europe/Stockholm"
+  );
 }
 
 module.exports = { registerTurnipPrice, setupTurnipPriceClearer };
