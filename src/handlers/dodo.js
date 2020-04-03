@@ -52,7 +52,7 @@ ${"> " + cleanedDodoMessage.replace(/\n/g, "\n> ")}`;
   });
 }
 
-createDodoChannel.PATTERN = /^dodo (?<dodoCode>[a-z0-9]{5})(\s+(?<dodoMessage>.+))?/i;
+createDodoChannel.PATTERN = /^dodo (?<dodoCode>[a-z0-9]{5})(\s+(?<dodoMessage>[\s\S]+))?/i;
 
 /**
  * @param {import('../main').BotContext} context
