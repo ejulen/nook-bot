@@ -1,5 +1,5 @@
-require('dotenv').config({
-    debug: true,
+require("dotenv").config({
+  debug: true,
 });
 
 const e = process.env;
@@ -15,13 +15,13 @@ const config = {
   DODO_CATEGORY_ID,
   TURNIP_CHANNEL_ID,
   BOT_TOKEN,
-  BELL_EMOJI_ID
+  BELL_EMOJI_ID,
 };
 
 for (let [key, value] of Object.entries(config)) {
-    if (value === undefined) {
-        throw `config value ${key} not set`;
-    }
+  if (value === undefined) {
+    throw `config value ${key} not set`;
+  }
 }
 
 module.exports = config;

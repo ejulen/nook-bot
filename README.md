@@ -26,6 +26,7 @@ or in `src/config.js`, and fill in the missing values.
 | TURNIP_CHANNEL_ID    | The ID of the channel where turnip prices will be stored.              |
 | DODO_CATEGORY_ID     | The ID of the category where Dodo channels will be created.            |
 | BELL_EMOJI_ID        | The ID of the emoji representing the Animal Crossing currency, bells.  |
+| TZ                   | The timezone to use, for example: Europe/Stockholm                     |
 
 As you can see the bot is not exactly made for being invited to multiple servers.
 

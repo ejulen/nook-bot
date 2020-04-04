@@ -4,6 +4,7 @@ const CronJob = require("cron").CronJob;
 const Eris = require("eris");
 
 const TURNIP_HEADER = "Turnip-priser:";
+const TURNIP_PRICING_CLEAR_TIMES = [8, 12, 22];
 
 const lock = new Lock();
 
@@ -19,10 +20,6 @@ const lock = new Lock();
  * @param {{turnipPrice: string}} params
  */
 async function registerTurnipPrice({ message, channel, bot }, { turnipPrice }) {
-  // TODO: Set current highest price in channel topic.
-  // TODO: Save a list of highest prices.
-  // TODO: Clear once every 12 hours and announce it.
-  // TODO: Display current highest price in topic and/or channel name.
   if (message.channel.id !== TURNIP_CHANNEL_ID) {
     return;
   }
@@ -35,9 +32,9 @@ async function registerTurnipPrice({ message, channel, bot }, { turnipPrice }) {
       newPrices: [
         {
           userMention: message.author.mention,
-          parsedPrice
-        }
-      ]
+          parsedPrice,
+        },
+      ],
     });
     if (newHighest) {
       await message.channel.createMessage(
@@ -58,7 +55,7 @@ registerTurnipPrice.PATTERN = /^(turnips?|majrov(a|or)) (?<turnipPrice>\d+)/i;
  */
 function parseTurnipMessage(content) {
   const lines = content.split("\n").slice(4); // skip first 4 lines - they're the header and the metadata, with spacing
-  const entries = lines.map(line => {
+  const entries = lines.map((line) => {
     const [userMention, price] = line.split(" ");
     const parsedPrice = parseInt(price, 10);
     return { userMention, parsedPrice };
@@ -88,7 +85,7 @@ function createTurnipPriceList(prices) {
  */
 async function getTurnipPricesMessage({ bot, channel }) {
   let pinnedMessage = (await channel.getPins()).find(
-    pinnedMessage =>
+    (pinnedMessage) =>
       pinnedMessage.author.id === bot.user.id &&
       pinnedMessage.cleanContent.startsWith(TURNIP_HEADER)
   );
@@ -111,28 +108,28 @@ async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
   const result = [
     ...(append
       ? currentPrices.filter(
-          a => !newPrices.some(b => b.userMention === a.userMention)
+          (a) => !newPrices.some((b) => b.userMention === a.userMention)
         )
       : []),
-    ...newPrices
+    ...newPrices,
   ].sort((a, b) => b.parsedPrice - a.parsedPrice);
   await pinnedMessage.edit(createTurnipPriceList(result));
   if (result.length > 0) {
     await channel.edit({
       topic: `Högsta pris just nu: ${result[0].parsedPrice} från ${result[0].userMention}`,
-      name: channel.name.replace(/-\d+$/, "") + `-${result[0].parsedPrice}`
+      name: channel.name.replace(/-\d+$/, "") + `-${result[0].parsedPrice}`,
     });
   } else {
     await channel.edit({
       topic: "Inga priser registrerade ännu.",
-      name: channel.name.replace(/-\d+$/, "")
+      name: channel.name.replace(/-\d+$/, ""),
     });
   }
   return {
     newHighest:
       currentPrices.length < 1 ||
       (result.length > 0 &&
-        currentPrices[0].parsedPrice < result[0].parsedPrice)
+        currentPrices[0].parsedPrice < result[0].parsedPrice),
   };
 }
 
@@ -140,14 +137,17 @@ async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
  * @param {import('eris').Client} bot
  */
 function setupTurnipPriceClearer(bot) {
-  const cronPattern = "0 0,12 * * *";
-  new CronJob(
-    cronPattern,
-    () => {
+  let lastClear;
+  setInterval(() => {
+    const date = new Date();
+    if (
+      TURNIP_PRICING_CLEAR_TIMES.includes(date.getHours()) &&
+      (!lastClear || lastClear.getHours() !== date.getHours())
+    ) {
       lock.acquire(async () => {
         const turnipChannel = bot.guilds
-          .find(guild => guild.id === GUILD_ID)
-          .channels.find(channel => channel.id === TURNIP_CHANNEL_ID);
+          .find((guild) => guild.id === GUILD_ID)
+          .channels.find((channel) => channel.id === TURNIP_CHANNEL_ID);
 
         if (
           !turnipChannel ||
@@ -163,14 +163,12 @@ function setupTurnipPriceClearer(bot) {
           bot,
           channel: turnipChannel,
           newPrices: [],
-          append: false
+          append: false,
         });
+        lastClear = date;
       });
-    },
-    null,
-    true,
-    "Europe/Stockholm"
-  );
+    }
+  }, 1000 * 10);
 }
 
 module.exports = { registerTurnipPrice, setupTurnipPriceClearer };
