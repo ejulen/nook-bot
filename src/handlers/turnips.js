@@ -145,27 +145,34 @@ function setupTurnipPriceClearer(bot) {
       (!lastClear || lastClear.getHours() !== date.getHours())
     ) {
       lock.acquire(async () => {
-        const turnipChannel = bot.guilds
-          .find((guild) => guild.id === GUILD_ID)
-          .channels.find((channel) => channel.id === TURNIP_CHANNEL_ID);
+        try {
+          const turnipChannel = bot.guilds
+            .find((guild) => guild.id === GUILD_ID)
+            .channels.find((channel) => channel.id === TURNIP_CHANNEL_ID);
 
-        if (
-          !turnipChannel ||
-          turnipChannel.type !== Eris.Constants.ChannelTypes.GUILD_TEXT
-        ) {
+          if (
+            !turnipChannel ||
+            turnipChannel.type !== Eris.Constants.ChannelTypes.GUILD_TEXT
+          ) {
+            console.error(
+              "setupTurnipPriceClearer: Could not find turnip channel."
+            );
+            return;
+          }
+          await turnipChannel.createMessage("Nu tömmer jag prislistan!");
+          await updateTurnipPrices({
+            bot,
+            channel: turnipChannel,
+            newPrices: [],
+            append: false,
+          });
+          lastClear = date;
+        } catch (e) {
           console.error(
-            "setupTurnipPriceClearer: Could not find turnip channel."
+            "Tried to clear turnip prices, but something went wrong:",
+            e
           );
-          return;
         }
-        await turnipChannel.createMessage("Nu tömmer jag prislistan!");
-        await updateTurnipPrices({
-          bot,
-          channel: turnipChannel,
-          newPrices: [],
-          append: false,
-        });
-        lastClear = date;
       });
     }
   }, 1000 * 10);

@@ -69,7 +69,7 @@ bot.on("messageCreate", async message => {
   }
 });
 
-bot.on("ready", () => {
+bot.once("ready", () => {
   setupTurnipPriceClearer(bot);
 });
 
