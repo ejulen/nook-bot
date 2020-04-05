@@ -1,6 +1,5 @@
 const { TURNIP_CHANNEL_ID, BELL_EMOJI_ID, GUILD_ID } = require("../config");
 const { dateFormatter, Lock } = require("../helpers");
-const CronJob = require("cron").CronJob;
 const Eris = require("eris");
 
 const TURNIP_HEADER = "Turnip-priser:";
