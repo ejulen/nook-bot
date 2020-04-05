@@ -176,7 +176,8 @@ async function updateTurnipPrices({
   return {
     newBest:
       currentPrices.length < 1 ||
-      (result.length > 0 && comparisonFunction(currentPrices[0], result[0])),
+      (result.length > 0 &&
+        comparisonFunction(currentPrices[0], result[0]) > 0),
   };
 }
 
