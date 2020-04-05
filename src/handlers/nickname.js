@@ -1,10 +1,10 @@
 const FRUIT_EMOJI = {
-  "🍊": /apelsin(er)?/i,
-  "🍎": /äpplen?/i,
-  "🍐": /päron/i,
-  "🍒": /körsbär/i,
-  "🍑": /persik(a|or)/i,
-  "🥥": /kokosnöt(ter)?/i
+  "🍊": /apelsin(er)?|oranges?/i,
+  "🍎": /äpplen?|apples?/i,
+  "🍐": /päron|pears?/i,
+  "🍒": /körsbär|cherr(y|ies)/i,
+  "🍑": /persik(a|or)|peach(es)?/i,
+  "🥥": /kokosnöt(ter)?|coconuts?/i
 };
 
 /**
