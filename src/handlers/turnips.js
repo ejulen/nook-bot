@@ -22,7 +22,7 @@ const SALE_PRICING_CLEAR = [
 /** @type {ClearEntry[]} */
 const PURCHASE_PRICING_CLEAR = [
   {
-    hour: 8,
+    hour: 5,
     message:
       "Nu blir det tomt i listan eftersom det är söndag och Daisy Mae kommer på besök!",
   },
