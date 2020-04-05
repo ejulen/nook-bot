@@ -4,18 +4,17 @@ const dateFormatter = new Intl.DateTimeFormat("sv-SE", {
   year: "numeric",
   month: "numeric",
   day: "numeric",
-  timeZone: "Europe/Stockholm"
 });
 
 class Lock {
-    constructor() {
-        this.promise = Promise.resolve();
-    }
+  constructor() {
+    this.promise = Promise.resolve();
+  }
 
-    acquire(callback) {
-        this.promise = this.promise.then(callback);
-        return this.promise;
-    }
+  acquire(callback) {
+    this.promise = this.promise.then(callback);
+    return this.promise;
+  }
 }
 
 module.exports = { dateFormatter, Lock };
