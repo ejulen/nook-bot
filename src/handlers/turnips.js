@@ -60,7 +60,7 @@ async function registerTurnipPrice({ message, channel, bot }, { turnipPrice }) {
   await lock.acquire(async () => {
     const date = new Date();
     const parsedPrice = parseInt(turnipPrice, 10);
-    const { newHighest } = await updateTurnipPrices({
+    const { newBest } = await updateTurnipPrices({
       bot,
       channel,
       newPrices: [
@@ -71,7 +71,7 @@ async function registerTurnipPrice({ message, channel, bot }, { turnipPrice }) {
       ],
       date,
     });
-    if (newHighest) {
+    if (newBest) {
       await message.channel.createMessage(
         `:tada: Ding ding ding! Nytt ${
           isPurchaseDay(date) ? "lägsta" : "högsta"
@@ -150,6 +150,7 @@ async function updateTurnipPrices({
 }) {
   const pinnedMessage = await getTurnipPricesMessage({ bot, channel });
   const currentPrices = parseTurnipMessage(pinnedMessage.content);
+  const comparisonFunction = comparePrices(date);
   const result = [
     ...(append
       ? currentPrices.filter(
@@ -157,7 +158,7 @@ async function updateTurnipPrices({
         )
       : []),
     ...newPrices,
-  ].sort(comparePrices(date));
+  ].sort(comparisonFunction);
   await pinnedMessage.edit(createTurnipPriceList(result));
   if (result.length > 0) {
     await channel.edit({
@@ -173,10 +174,9 @@ async function updateTurnipPrices({
     });
   }
   return {
-    newHighest:
+    newBest:
       currentPrices.length < 1 ||
-      (result.length > 0 &&
-        currentPrices[0].parsedPrice < result[0].parsedPrice),
+      (result.length > 0 && comparisonFunction(currentPrices[0], result[0])),
   };
 }
 
@@ -230,12 +230,11 @@ function isPurchaseDay(date = new Date()) {
   return date.getDay() === PURCHASE_DAY;
 }
 
+/**
+ * @param {Date} date
+ * @return {(a: PriceEntry, b: PriceEntry) => number}
+ */
 function comparePrices(date) {
-  /**
-   * @param {PriceEntry} a
-   * @param {PriceEntry} b
-   * @return {boolean}
-   */
   return (a, b) =>
     isPurchaseDay(date)
       ? a.parsedPrice - b.parsedPrice
