@@ -2,8 +2,36 @@ const { TURNIP_CHANNEL_ID, BELL_EMOJI_ID, GUILD_ID } = require("../config");
 const { dateFormatter, Lock } = require("../helpers");
 const Eris = require("eris");
 
-const TURNIP_HEADER = "Turnip-priser:";
-const TURNIP_PRICING_CLEAR_TIMES = [8, 12, 22];
+const HEADER = "Turnip-priser:";
+/** @type {ClearEntry[]} */
+const SALE_PRICING_CLEAR = [
+  {
+    hour: 8,
+    message: "Jag tömmer prislistan, då Nook's Cranny öppnar nu.",
+  },
+  {
+    hour: 12,
+    message:
+      "Nu tömmer jag prislistan igen, eftersom priset förändras mitt på dagen.",
+  },
+  {
+    hour: 22,
+    message: "Tömmer listan återigen eftersom Nook's Cranny stänger nu.",
+  },
+];
+/** @type {ClearEntry[]} */
+const PURCHASE_PRICING_CLEAR = [
+  {
+    hour: 5,
+    message:
+      "Nu blir det tomt i listan eftersom det är söndag och Daisy Mae kommer på besök!",
+  },
+  {
+    hour: 12,
+    message: "Listan töms nu eftersom Daisy Mae drar vid klockan 12.",
+  },
+];
+const PURCHASE_DAY = 0; // Sunday
 
 const lock = new Lock();
 
@@ -11,6 +39,12 @@ const lock = new Lock();
  * @typedef {Object} PriceEntry
  * @prop {string} userMention
  * @prop {number} parsedPrice
+ */
+
+/**
+ * @typedef {Object} ClearEntry
+ * @prop {number} hour
+ * @prop {string} message
  */
 
 /**
@@ -24,8 +58,9 @@ async function registerTurnipPrice({ message, channel, bot }, { turnipPrice }) {
   }
 
   await lock.acquire(async () => {
+    const date = new Date();
     const parsedPrice = parseInt(turnipPrice, 10);
-    const { newHighest } = await updateTurnipPrices({
+    const { newBest } = await updateTurnipPrices({
       bot,
       channel,
       newPrices: [
@@ -34,10 +69,15 @@ async function registerTurnipPrice({ message, channel, bot }, { turnipPrice }) {
           parsedPrice,
         },
       ],
+      date,
     });
-    if (newHighest) {
+    if (newBest) {
       await message.channel.createMessage(
-        `:tada: Ding ding ding! Nytt högsta pris registrerat från ${message.author.mention} på ${turnipPrice}${BELL_EMOJI_ID}!`
+        `:tada: Ding ding ding! Nytt ${
+          isPurchaseDay(date) ? "lägsta" : "högsta"
+        } pris registrerat från ${
+          message.author.mention
+        } på ${turnipPrice}${BELL_EMOJI_ID}!`
       );
     } else {
       await message.channel.createMessage(
@@ -63,7 +103,7 @@ function parseTurnipMessage(content) {
 }
 
 function createTurnipHeader() {
-  return `${TURNIP_HEADER}\n\nSenast uppdaterad: ${dateFormatter.format()}`;
+  return `${HEADER}\n\nSenast uppdaterad: ${dateFormatter.format()}`;
 }
 
 /**
@@ -86,11 +126,11 @@ async function getTurnipPricesMessage({ bot, channel }) {
   let pinnedMessage = (await channel.getPins()).find(
     (pinnedMessage) =>
       pinnedMessage.author.id === bot.user.id &&
-      pinnedMessage.cleanContent.startsWith(TURNIP_HEADER)
+      pinnedMessage.cleanContent.startsWith(HEADER)
   );
 
   if (!pinnedMessage) {
-    pinnedMessage = await channel.createMessage(TURNIP_HEADER);
+    pinnedMessage = await channel.createMessage(HEADER);
     await pinnedMessage.pin();
   }
 
@@ -99,11 +139,18 @@ async function getTurnipPricesMessage({ bot, channel }) {
 
 /**
  *
- * @param {{bot: import('eris').Client, channel: import('eris').GuildTextableChannel, newPrices: PriceEntry[], append?: boolean}} param0
+ * @param {{bot: import('eris').Client, channel: import('eris').GuildTextableChannel, newPrices: PriceEntry[], append?: boolean, date: Date}} param0
  */
-async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
+async function updateTurnipPrices({
+  bot,
+  channel,
+  newPrices,
+  append = true,
+  date,
+}) {
   const pinnedMessage = await getTurnipPricesMessage({ bot, channel });
   const currentPrices = parseTurnipMessage(pinnedMessage.content);
+  const comparisonFunction = comparePrices(date);
   const result = [
     ...(append
       ? currentPrices.filter(
@@ -111,11 +158,13 @@ async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
         )
       : []),
     ...newPrices,
-  ].sort((a, b) => b.parsedPrice - a.parsedPrice);
+  ].sort(comparisonFunction);
   await pinnedMessage.edit(createTurnipPriceList(result));
   if (result.length > 0) {
     await channel.edit({
-      topic: `Högsta pris just nu: ${result[0].parsedPrice} från ${result[0].userMention}`,
+      topic: `${isPurchaseDay(date) ? "Lägsta" : "Högsta"} pris just nu: ${
+        result[0].parsedPrice
+      } från ${result[0].userMention}`,
       name: channel.name.replace(/-\d+$/, "") + `-${result[0].parsedPrice}`,
     });
   } else {
@@ -125,10 +174,10 @@ async function updateTurnipPrices({ bot, channel, newPrices, append = true }) {
     });
   }
   return {
-    newHighest:
+    newBest:
       currentPrices.length < 1 ||
       (result.length > 0 &&
-        currentPrices[0].parsedPrice < result[0].parsedPrice),
+        comparisonFunction(currentPrices[0], result[0]) > 0),
   };
 }
 
@@ -140,7 +189,7 @@ function setupTurnipPriceClearer(bot) {
   setInterval(() => {
     const date = new Date();
     if (
-      TURNIP_PRICING_CLEAR_TIMES.includes(date.getHours()) &&
+      isClearingHour(date) &&
       (!lastClear || lastClear.getHours() !== date.getHours())
     ) {
       lock.acquire(async () => {
@@ -158,12 +207,13 @@ function setupTurnipPriceClearer(bot) {
             );
             return;
           }
-          await turnipChannel.createMessage("Nu tömmer jag prislistan!");
+          await turnipChannel.createMessage(getClearMessage(date));
           await updateTurnipPrices({
             bot,
             channel: turnipChannel,
             newPrices: [],
             append: false,
+            date,
           });
           lastClear = date;
         } catch (e) {
@@ -175,6 +225,44 @@ function setupTurnipPriceClearer(bot) {
       });
     }
   }, 1000 * 10);
+}
+
+function isPurchaseDay(date = new Date()) {
+  return date.getDay() === PURCHASE_DAY;
+}
+
+/**
+ * @param {Date} date
+ * @return {(a: PriceEntry, b: PriceEntry) => number}
+ */
+function comparePrices(date) {
+  return (a, b) =>
+    isPurchaseDay(date)
+      ? a.parsedPrice - b.parsedPrice
+      : b.parsedPrice - a.parsedPrice;
+}
+
+/**
+ * @param {Date} date
+ * @return {string}
+ */
+function getClearMessage(date) {
+  const clearEntry = (isPurchaseDay(date)
+    ? PURCHASE_PRICING_CLEAR
+    : SALE_PRICING_CLEAR
+  ).find(({ hour }) => hour === date.getHours());
+  return clearEntry ? clearEntry.message : "Tömde prislistan just!";
+}
+
+/**
+ * @param {Date} date
+ * @return {boolean}
+ */
+function isClearingHour(date) {
+  return (isPurchaseDay(date)
+    ? PURCHASE_PRICING_CLEAR
+    : SALE_PRICING_CLEAR
+  ).some(({ hour }) => hour === date.getHours());
 }
 
 module.exports = { registerTurnipPrice, setupTurnipPriceClearer };
