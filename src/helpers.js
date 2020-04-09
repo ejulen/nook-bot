@@ -12,7 +12,7 @@ class Lock {
   }
 
   acquire(callback) {
-    this.promise = this.promise.then(callback);
+    this.promise = this.promise.then(callback).catch(err => console.error(err));
     return this.promise;
   }
 }
