@@ -104,7 +104,11 @@ async function getDodoChannelByUserId(guild, userId) {
   for (let channel of dodoChannels) {
     if (channel.type === Eris.Constants.ChannelTypes.GUILD_TEXT) {
       const initialPin = (await channel.getPins())[0];
-      if (initialPin.mentions.some((user) => user.id === userId)) {
+      if (
+        initialPin &&
+        initialPin.mentions.length > 0 &&
+        initialPin.mentions[0].id === userId
+      ) {
         return channel;
       }
     }
