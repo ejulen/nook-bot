@@ -1,5 +1,5 @@
 const Eris = require("eris");
-const { createDodoChannel, closeDodoChannel } = require("./handlers/dodo");
+const { createDodoChannel, closeDodoChannel, cancelClosingDodoChannel } = require("./handlers/dodo");
 const {
   registerTurnipPrice,
   setupTurnipPriceClearer,
@@ -12,6 +12,7 @@ const { BOT_TOKEN } = require("./config");
 const MESSAGE_ROUTER = [
   createDodoChannel,
   closeDodoChannel,
+  cancelClosingDodoChannel,
   registerTurnipPrice,
   changeNickname,
   changePersonality,
