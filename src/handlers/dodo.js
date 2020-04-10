@@ -136,6 +136,11 @@ function cancelClosingDodoChannel({ message, guild }) {
       await message.channel.createMessage(
         `Ok, ${message.author.mention}, jag har avbrutit stängningen.`
       );
+      if (message.channel.id !== dodoChannel.id) {
+        await dodoChannel.createMessage(
+          "På begäran av kanalskaparen har jag avbrutit stängningen av den här kanalen."
+        );
+      }
     } else {
       await message.channel.createMessage(
         `Hmm, ${message.author.mention}, ser inte ut som du har nån Dodo-kanal?`
