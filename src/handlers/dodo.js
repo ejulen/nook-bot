@@ -71,15 +71,15 @@ async function closeDodoChannel({ message, guild }) {
 
   if (message.channel.id !== dodoChannel.id) {
     await message.channel.createMessage(
-      "Ok! Tar bort din Dodo-kanal om 15 sekunder."
+      "Ok! Tar bort din Dodo-kanal om 5 minuter."
     );
   }
 
   await dodoChannel.createMessage(
-    "På begäran av kanalskaparen tas den här kanalen bort om 15 sekunder."
+    "På begäran av kanalskaparen tas den här kanalen bort om 5 minuter."
   );
 
-  await new Promise((resolve) => setTimeout(resolve, 15000));
+  await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000));
 
   await lock.acquire(async () => {
     try {
