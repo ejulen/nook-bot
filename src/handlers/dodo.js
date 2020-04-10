@@ -27,7 +27,7 @@ function createDodoChannel({ message, guild, bot }, { dodoCode, dodoMessage }) {
       dodoCode,
       Eris.Constants.ChannelTypes.GUILD_TEXT,
       {
-        parentID: DODO_CATEGORY_ID
+        parentID: DODO_CATEGORY_ID,
       }
     );
 
@@ -57,26 +57,36 @@ createDodoChannel.PATTERN = /^dodo (?<dodoCode>[a-z0-9]{5})(\s+(?<dodoMessage>[\
 /**
  * @param {import('../main').BotContext} context
  */
-async function closeDodoChannel({ message, channel }) {
-  await lock.acquire(async () => {
-    if (channel.parentID !== DODO_CATEGORY_ID) {
-      return;
-    }
+async function closeDodoChannel({ message, guild }) {
+  /** @type {import('eris').GuildTextableChannel?} */
+  let dodoChannel;
 
-    const initialPin = (await message.channel.getPins())[0];
-    if (!initialPin.mentions.some(user => user.id === message.author.id)) {
-      return;
-    }
+  await lock.acquire(async () => {
+    dodoChannel = await getDodoChannelByUserId(guild, message.author.id);
   });
 
-  await message.channel.createMessage(
-    "Ok! Tar bort den här kanalen om 15 sekunder."
+  if (!dodoChannel) {
+    return;
+  }
+
+  if (message.channel.id !== dodoChannel.id) {
+    await message.channel.createMessage(
+      "Ok! Tar bort din Dodo-kanal om 15 sekunder."
+    );
+  }
+
+  await dodoChannel.createMessage(
+    "På begäran av kanalskaparen tas den här kanalen bort om 15 sekunder."
   );
 
-  await new Promise(resolve => setTimeout(resolve, 15000));
+  await new Promise((resolve) => setTimeout(resolve, 15000));
 
   await lock.acquire(async () => {
-    await channel.delete();
+    try {
+      await dodoChannel.delete();
+    } catch (e) {
+      console.error("Could not delete Dodo channel:", e);
+    }
   });
 }
 
@@ -85,15 +95,16 @@ closeDodoChannel.PATTERN = /^stäng/i;
 /**
  * @param {import('eris').Guild} guild
  * @param {import('eris').User['id']} userId
+ * @return {Promise<import('eris').GuildTextableChannel?>}
  */
 async function getDodoChannelByUserId(guild, userId) {
   const dodoChannels = guild.channels.filter(
-    channel => channel.parentID === DODO_CATEGORY_ID
+    (channel) => channel.parentID === DODO_CATEGORY_ID
   );
   for (let channel of dodoChannels) {
     if (channel.type === Eris.Constants.ChannelTypes.GUILD_TEXT) {
       const initialPin = (await channel.getPins())[0];
-      if (initialPin.mentions.some(user => user.id === userId)) {
+      if (initialPin.mentions.some((user) => user.id === userId)) {
         return channel;
       }
     }
