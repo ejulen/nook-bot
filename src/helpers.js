@@ -12,9 +12,15 @@ class Lock {
   }
 
   acquire(callback) {
-    this.promise = this.promise.then(callback).catch(err => console.error(err));
+    this.promise = this.promise
+      .then(callback)
+      .catch((err) => console.error(err));
     return this.promise;
   }
 }
 
-module.exports = { dateFormatter, Lock };
+function quote(input) {
+  return "> " + input.replace(/\n/g, "\n> ");
+}
+
+module.exports = { dateFormatter, Lock, quote };

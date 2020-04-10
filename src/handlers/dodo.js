@@ -1,5 +1,5 @@
 const Eris = require("eris");
-const { Lock } = require("../helpers");
+const { Lock, quote } = require("../helpers");
 
 const { DODO_CATEGORY_ID } = require("../config");
 
@@ -18,8 +18,16 @@ function createDodoChannel({ message, guild, bot }, { dodoCode, dodoMessage }) {
     );
     if (alreadyCreatedChannel) {
       await message.channel.createMessage(
-        `Ledsen, ${message.author.mention}, men du har redan skapat en Dodo-kanal: ${alreadyCreatedChannel.mention}`
+        `Eftersom du redan skapat en Dodo-kanal, ${message.author.mention}, kommer jag ändra koden till den befintliga istället.`
       );
+      await alreadyCreatedChannel.edit({ name: dodoCode });
+      let newMessage = `Koden har nu ändrats till ${dodoCode}.`;
+      if (dodoMessage) {
+        newMessage += `\n\nKanalskaparen skrev även följande:\n\n${quote(
+          dodoMessage.trim()
+        )}`;
+      }
+      await alreadyCreatedChannel.createMessage(newMessage);
       return;
     }
 
@@ -39,7 +47,7 @@ function createDodoChannel({ message, guild, bot }, { dodoCode, dodoMessage }) {
         message.author.mention
       } skapade den här kanalen, med följande meddelande:
 
-${"> " + cleanedDodoMessage.replace(/\n/g, "\n> ")}`;
+${quote(cleanedDodoMessage)}`;
     } else {
       welcomeMessageText = `${message.author.mention} skapade den här kanalen.`;
     }
@@ -81,7 +89,7 @@ async function closeDodoChannel({ message, guild }) {
     "På begäran av kanalskaparen tas den här kanalen bort om 5 minuter."
   );
 
-  closeTimers[dodoChannel.name] = setTimeout(async () => {
+  closeTimers[dodoChannel.id] = setTimeout(async () => {
     await lock.acquire(async () => {
       try {
         await dodoChannel.delete();
@@ -124,10 +132,14 @@ function cancelClosingDodoChannel({ message, guild }) {
   return lock.acquire(async () => {
     const dodoChannel = await getDodoChannelByUserId(guild, message.author.id);
     if (dodoChannel) {
-      clearTimeout(closeTimers[dodoChannel.name]);
-      await message.channel.createMessage(`Ok, ${message.author.mention}, jag har avbrutit stängningen.`);
+      clearTimeout(closeTimers[dodoChannel.id]);
+      await message.channel.createMessage(
+        `Ok, ${message.author.mention}, jag har avbrutit stängningen.`
+      );
     } else {
-      await message.channel.createMessage(`Hmm, ${message.author.mention}, ser inte ut som du har nån Dodo-kanal?`);
+      await message.channel.createMessage(
+        `Hmm, ${message.author.mention}, ser inte ut som du har nån Dodo-kanal?`
+      );
     }
   });
 }
