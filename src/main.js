@@ -1,5 +1,9 @@
 const Eris = require("eris");
-const { createDodoChannel, closeDodoChannel, cancelClosingDodoChannel } = require("./handlers/dodo");
+const {
+  createDodoChannel,
+  closeDodoChannel,
+  cancelClosingDodoChannel,
+} = require("./handlers/dodo");
 const {
   registerTurnipPrice,
   setupTurnipPriceClearer,
@@ -67,6 +71,13 @@ bot.on("messageCreate", async (message) => {
         return;
       }
     }
+
+    await message.channel
+      .createMessage(`Hmm, ${message.author.mention}, nu förstod jag inte riktigt vad du menade. Du kan skriva
+
+${bot.user.mention} hjälp
+
+för att se vad jag kan göra.`);
   }
 });
 
