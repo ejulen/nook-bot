@@ -44,6 +44,10 @@ bot.on("messageCreate", async (message) => {
     return;
   }
 
+  if (message.author.id === bot.user.id) {
+    return;
+  }
+
   if (message.mentions.some((user) => user.id === bot.user.id)) {
     const content = message.content
       .trim()
