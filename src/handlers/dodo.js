@@ -62,7 +62,7 @@ ${quote(cleanedDodoMessage)}`;
   });
 }
 
-createDodoChannel.PATTERN = /^dodo (?<dodoCode>[a-z0-9]{5})(\s+(?<dodoMessage>[\s\S]+))?/i;
+createDodoChannel.PATTERN = /^dodo\s*(-?code\s*)?:?\s*(?<dodoCode>[a-z0-9]{5})(\s+(?<dodoMessage>[\s\S]+))?/i;
 
 /**
  * @param {import('../main').BotContext} context
