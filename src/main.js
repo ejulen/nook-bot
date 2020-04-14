@@ -48,13 +48,17 @@ bot.on("messageCreate", async (message) => {
     return;
   }
 
+  const commandPattern = new RegExp(`^<@!?${bot.user.id}>\\s*`);
+
   if (message.mentions.some((user) => user.id === bot.user.id)) {
-    const content = message.content
-      .trim()
-      .replace(new RegExp(`^<@!?${bot.user.id}>\\s*`), "");
+    const content = message.content.trim();
+    if (!content.match(commandPattern)) {
+      return;
+    }
+    const cleanedContent = content.replace(commandPattern, "");
 
     for (let handler of MESSAGE_ROUTER) {
-      const match = content.match(handler.PATTERN);
+      const match = cleanedContent.match(handler.PATTERN);
       if (match) {
         try {
           await handler(
