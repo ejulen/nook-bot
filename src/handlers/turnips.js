@@ -1,6 +1,7 @@
 const { TURNIP_CHANNEL_ID, BELL_EMOJI_ID, GUILD_ID } = require("../config");
-const { dateFormatter, Lock } = require("../helpers");
+const { dateFormatter } = require("../helpers");
 const Eris = require("eris");
+const AwaitLock = require("await-lock").default;
 
 const HEADER = "Turnip-priser:";
 /** @type {ClearEntry[]} */
@@ -33,7 +34,7 @@ const PURCHASE_PRICING_CLEAR = [
 ];
 const PURCHASE_DAY = 0; // Sunday
 
-const lock = new Lock();
+const lock = new AwaitLock();
 
 /**
  * @typedef {Object} PriceEntry
@@ -57,7 +58,8 @@ async function registerTurnipPrice({ message, channel, bot }, { turnipPrice }) {
     return;
   }
 
-  await lock.acquire(async () => {
+  await lock.acquireAsync();
+  try {
     const date = new Date();
     const parsedPrice = parseInt(turnipPrice, 10);
     const { newBest } = await updateTurnipPrices({
@@ -84,7 +86,9 @@ async function registerTurnipPrice({ message, channel, bot }, { turnipPrice }) {
         `Tack, ${message.author.mention}, ditt pris är registrerat!`
       );
     }
-  });
+  } finally {
+    lock.release();
+  }
 }
 
 registerTurnipPrice.PATTERN = /^(turnips?|majrov(a|or)) (?<turnipPrice>\d+)/i;
@@ -186,43 +190,44 @@ async function updateTurnipPrices({
  */
 function setupTurnipPriceClearer(bot) {
   let lastClear;
-  setInterval(() => {
+  setInterval(async () => {
     const date = new Date();
     if (
       isClearingHour(date) &&
       (!lastClear || lastClear.getHours() !== date.getHours())
     ) {
-      lock.acquire(async () => {
-        try {
-          const turnipChannel = bot.guilds
-            .find((guild) => guild.id === GUILD_ID)
-            .channels.find((channel) => channel.id === TURNIP_CHANNEL_ID);
+      await lock.acquireAsync();
+      try {
+        const turnipChannel = bot.guilds
+          .find((guild) => guild.id === GUILD_ID)
+          .channels.find((channel) => channel.id === TURNIP_CHANNEL_ID);
 
-          if (
-            !turnipChannel ||
-            turnipChannel.type !== Eris.Constants.ChannelTypes.GUILD_TEXT
-          ) {
-            console.error(
-              "setupTurnipPriceClearer: Could not find turnip channel."
-            );
-            return;
-          }
-          await turnipChannel.createMessage(getClearMessage(date));
-          await updateTurnipPrices({
-            bot,
-            channel: turnipChannel,
-            newPrices: [],
-            append: false,
-            date,
-          });
-          lastClear = date;
-        } catch (e) {
+        if (
+          !turnipChannel ||
+          turnipChannel.type !== Eris.Constants.ChannelTypes.GUILD_TEXT
+        ) {
           console.error(
-            "Tried to clear turnip prices, but something went wrong:",
-            e
+            "setupTurnipPriceClearer: Could not find turnip channel."
           );
+          return;
         }
-      });
+        await turnipChannel.createMessage(getClearMessage(date));
+        await updateTurnipPrices({
+          bot,
+          channel: turnipChannel,
+          newPrices: [],
+          append: false,
+          date,
+        });
+        lastClear = date;
+      } catch (e) {
+        console.error(
+          "Tried to clear turnip prices, but something went wrong:",
+          e
+        );
+      } finally {
+        lock.release();
+      }
     }
   }, 1000 * 10);
 }

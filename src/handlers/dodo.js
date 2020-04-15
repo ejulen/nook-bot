@@ -1,17 +1,22 @@
 const Eris = require("eris");
-const { Lock, quote } = require("../helpers");
+const { quote } = require("../helpers");
+const AwaitLock = require("await-lock").default;
 
 const { DODO_CATEGORY_ID } = require("../config");
 
-const lock = new Lock();
+const lock = new AwaitLock();
 
 const closeTimers = {};
 
 /**
  * @type {import('../main').Handler}
  */
-function createDodoChannel({ message, guild, bot }, { dodoCode, dodoMessage }) {
-  return lock.acquire(async () => {
+async function createDodoChannel(
+  { message, guild, bot },
+  { dodoCode, dodoMessage }
+) {
+  await lock.acquireAsync();
+  try {
     const alreadyCreatedChannel = await getDodoChannelByUserId(
       guild,
       message.author.id
@@ -59,7 +64,9 @@ ${quote(cleanedDodoMessage)}`;
     await message.channel.createMessage(
       `Okej, skapade en Dodo-kanal: ${newChannel.mention} :thumbsup:`
     );
-  });
+  } finally {
+    lock.release();
+  }
 }
 
 createDodoChannel.PATTERN = /^dodo\s*(-?code\s*)?:?\s*(?<dodoCode>[a-z0-9]{5})(\s+(?<dodoMessage>[\s\S]+))?/i;
@@ -71,9 +78,12 @@ async function closeDodoChannel({ message, guild }) {
   /** @type {import('eris').GuildTextableChannel?} */
   let dodoChannel;
 
-  await lock.acquire(async () => {
+  await lock.acquireAsync();
+  try {
     dodoChannel = await getDodoChannelByUserId(guild, message.author.id);
-  });
+  } finally {
+    lock.release();
+  }
 
   if (!dodoChannel) {
     return;
@@ -90,13 +100,14 @@ async function closeDodoChannel({ message, guild }) {
   );
 
   closeTimers[dodoChannel.id] = setTimeout(async () => {
-    await lock.acquire(async () => {
-      try {
-        await dodoChannel.delete();
-      } catch (e) {
-        console.error("Could not delete Dodo channel:", e);
-      }
-    });
+    await lock.acquireAsync();
+    try {
+      await dodoChannel.delete();
+    } catch (e) {
+      console.error("Could not delete Dodo channel:", e);
+    } finally {
+      lock.release();
+    }
   }, 5 * 60 * 1000);
 }
 
@@ -128,8 +139,9 @@ async function getDodoChannelByUserId(guild, userId) {
 /**
  * @param {import('../main').BotContext} context
  */
-function cancelClosingDodoChannel({ message, guild }) {
-  return lock.acquire(async () => {
+async function cancelClosingDodoChannel({ message, guild }) {
+  await lock.acquireAsync();
+  try {
     const dodoChannel = await getDodoChannelByUserId(guild, message.author.id);
     if (dodoChannel) {
       clearTimeout(closeTimers[dodoChannel.id]);
@@ -146,7 +158,9 @@ function cancelClosingDodoChannel({ message, guild }) {
         `Hmm, ${message.author.mention}, ser inte ut som du har nån Dodo-kanal?`
       );
     }
-  });
+  } finally {
+    lock.release();
+  }
 }
 
 cancelClosingDodoChannel.PATTERN = /^(avbryt|cancel)/i;
