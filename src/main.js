@@ -50,6 +50,8 @@ bot.on("messageCreate", async (message) => {
 
   const commandPattern = new RegExp(`^<@!?${bot.user.id}>\\s*`);
 
+  console.log(message.content, message.mentions.map(user => user.username));
+
   if (message.mentions.some((user) => user.id === bot.user.id)) {
     const content = message.content.trim();
     if (!content.match(commandPattern)) {
