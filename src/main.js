@@ -48,11 +48,17 @@ bot.on("messageCreate", async (message) => {
     return;
   }
 
-  const commandPattern = new RegExp(`^<@!?${bot.user.id}>\\s*`);
+  const botMember = message.channel.guild.members.find(
+    (member) => member.user.id === bot.user.id
+  );
+  const commandPattern = new RegExp(
+    `^<@(!|&)?(${bot.user.id}|${botMember.roles.join("|")})>\\s*`
+  );
 
-  console.log(message.content, message.mentions.map(user => user.username));
-
-  if (message.mentions.some((user) => user.id === bot.user.id)) {
+  if (
+    message.mentions.some((user) => user.id === bot.user.id) ||
+    message.roleMentions.some((role) => botMember.roles.includes(role))
+  ) {
     const content = message.content.trim();
     if (!content.match(commandPattern)) {
       return;
