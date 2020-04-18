@@ -44,7 +44,11 @@ bot.on("messageCreate", async (message) => {
     return;
   }
 
-  console.log(`#${message.channel.name}> ${message.author.username}: ${message.content}`, message.mentions, message.roleMentions);
+  console.log(
+    `#${message.channel.name}> ${message.author.username}: ${message.content}`,
+    message.mentions.map((mention) => mention.username),
+    message.roleMentions
+  );
 
   if (message.author.id === bot.user.id) {
     return;
