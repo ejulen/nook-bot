@@ -58,17 +58,12 @@ bot.on("messageCreate", async (message) => {
     (member) => member.user.id === bot.user.id
   );
   const commandPattern = new RegExp(
-    `^<@(!|&)?(${bot.user.id}|${botMember.roles.join("|")})>\\s*`
+    `^(\\!|<@(!|&)?(${bot.user.id}|${botMember.roles.join("|")})>\\s*)`
   );
 
-  if (
-    message.mentions.some((user) => user.id === bot.user.id) ||
-    message.roleMentions.some((role) => botMember.roles.includes(role))
-  ) {
-    const content = message.content.trim();
-    if (!content.match(commandPattern)) {
-      return;
-    }
+  const content = message.content.trim();
+
+  if (content.match(commandPattern)) {
     const cleanedContent = content.replace(commandPattern, "");
 
     for (let handler of MESSAGE_ROUTER) {
