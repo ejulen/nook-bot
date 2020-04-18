@@ -44,6 +44,8 @@ bot.on("messageCreate", async (message) => {
     return;
   }
 
+  console.log(`#${message.channel.name}> ${message.author.username}: ${message.content}`, message.mentions, message.roleMentions);
+
   if (message.author.id === bot.user.id) {
     return;
   }
