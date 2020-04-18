@@ -22,7 +22,7 @@ async function createDodoChannel(
       message.author.id
     );
     if (alreadyCreatedChannel) {
-      clearTimeout(closeTimers[alreadyCreatedChannel.id]);
+      clearCloseTimer(closeTimers[alreadyCreatedChannel.id]);
       await message.channel.createMessage(
         `Eftersom du redan skapat en Dodo-kanal, ${message.author.mention}, kommer jag ändra koden till den befintliga istället.`
       );
@@ -145,7 +145,7 @@ async function cancelClosingDodoChannel({ message, guild }) {
   try {
     const dodoChannel = await getDodoChannelByUserId(guild, message.author.id);
     if (dodoChannel) {
-      clearTimeout(closeTimers[dodoChannel.id]);
+      clearCloseTimer(closeTimers[dodoChannel.id]);
       await message.channel.createMessage(
         `Ok, ${message.author.mention}, jag har avbrutit stängningen.`
       );
@@ -162,6 +162,14 @@ async function cancelClosingDodoChannel({ message, guild }) {
   } finally {
     lock.release();
   }
+}
+
+/**
+ * @param {import('eris').GuildTextableChannel['id']} channelId
+ */
+function clearCloseTimer(channelId) {
+  clearTimeout(closeTimers[channelId]);
+  delete closeTimers[channelId];
 }
 
 cancelClosingDodoChannel.PATTERN = /^(avbryt|cancel)/i;
