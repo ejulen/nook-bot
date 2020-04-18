@@ -2,7 +2,7 @@ const Eris = require("eris");
 const { quote } = require("../helpers");
 const AwaitLock = require("await-lock").default;
 
-const { DODO_CATEGORY_ID } = require("../config");
+const { DODO_CATEGORY_ID, COMMAND_PREFIX } = require("../config");
 
 const lock = new AwaitLock();
 
@@ -57,7 +57,7 @@ ${quote(cleanedDodoMessage)}`;
     } else {
       welcomeMessageText = `${message.author.mention} skapade den här kanalen.`;
     }
-    welcomeMessageText += `\n\nHen kan skriva\n\n${bot.user.mention} stäng\n\nför att stänga kanalen. För att avbryta stängningen kan hen skriva:\n\n${bot.user.mention} avbryt\n\nFör att uppdatera koden kan hen använda sig av samma kommando som man använder för att skapa en Dodo-kanal. Då kommer den här kanalen uppdateras istället.`;
+    welcomeMessageText += `\n\nHen kan skriva\n\n${COMMAND_PREFIX}stäng\n\nför att stänga kanalen. För att avbryta stängningen kan hen skriva:\n\n${COMMAND_PREFIX}avbryt\n\nFör att uppdatera koden kan hen använda sig av samma kommando som man använder för att skapa en Dodo-kanal. Då kommer den här kanalen uppdateras istället.`;
 
     const welcomeMessage = await newChannel.createMessage(welcomeMessageText);
     await welcomeMessage.pin();

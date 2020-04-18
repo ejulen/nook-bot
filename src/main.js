@@ -11,7 +11,7 @@ const {
 const { changeNickname } = require("./handlers/nickname");
 const { changePersonality } = require("./handlers/personality");
 const { help } = require("./handlers/help");
-const { BOT_TOKEN } = require("./config");
+const { BOT_TOKEN, COMMAND_PREFIX } = require("./config");
 
 const MESSAGE_ROUTER = [
   createDodoChannel,
@@ -58,7 +58,7 @@ bot.on("messageCreate", async (message) => {
     (member) => member.user.id === bot.user.id
   );
   const commandPattern = new RegExp(
-    `^(\\!|<@(!|&)?(${bot.user.id}|${botMember.roles.join("|")})>\\s*)`
+    `^(\\${COMMAND_PREFIX}|<@(!|&)?(${bot.user.id}|${botMember.roles.join("|")})>\\s*)`
   );
 
   const content = message.content.trim();
@@ -92,7 +92,7 @@ bot.on("messageCreate", async (message) => {
     await message.channel
       .createMessage(`Hmm, ${message.author.mention}, nu förstod jag inte riktigt vad du menade. Du kan skriva
 
-${bot.user.mention} hjälp
+${COMMAND_PREFIX}hjälp
 
 för att se vad jag kan göra.`);
   }

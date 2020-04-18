@@ -1,27 +1,29 @@
+const { COMMAND_PREFIX } = require("../config");
+
 /**
  * @type {import('../main').Handler}
  */
 async function help({ channel, bot }) {
-  const botMention = bot.user.mention;
   await channel.createMessage(`Här är vad jag kan göra:
 
 **Skapa Dodo-kod-specifika kanaler:**
-${botMention} dodo dodokod valfritt meddelande
-Till exempel: ${botMention} dodo abc12
+\`${COMMAND_PREFIX}dodo dodokod valfritt meddelande\`
+Till exempel: \`${COMMAND_PREFIX}dodo abc12\`
 eller
-${botMention} dodo abc12 Välkommen till min ö!
+\`${COMMAND_PREFIX}dodo abc12 Välkommen till min ö${COMMAND_PREFIX}\`
 
 **Ändra ditt smeknamn till Namn/Ö/Ursprungsfrukt-formatet:**
-${botMention} nick Namn/Ö/frukt
-Till exempel: ${botMention} nick Kerry/Härnta/persika
+\`${COMMAND_PREFIX}nick Namn/Ö/frukt\`
+Till exempel: \`${COMMAND_PREFIX}nick Kerry/Härnta/persika\`
+Det går bra att skriva fruktens namn på både svenska och engelska.
 
 **Ändra färgen på ditt användarnamn:**
-${botMention} färg färgnamn
-Till exempel: ${botMention} färg lazy
+\`${COMMAND_PREFIX}färg färgnamn\`
+Till exempel: \`${COMMAND_PREFIX}färg lazy\`
 
 **Hålla reda på vem som har de bästa turnip-priserna:**
-${botMention} turnip pris
-Till exempel: ${botMention} turnip 150
+\`${COMMAND_PREFIX}turnip pris\`
+Till exempel: \`${COMMAND_PREFIX}turnip 150\`
 `);
 }
 
