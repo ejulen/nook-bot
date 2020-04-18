@@ -8,15 +8,18 @@ const HEADER = "Turnip-priser:";
 const SALE_PRICING_CLEAR = [
   {
     hour: 8,
+    minute: 0,
     message: "Jag tömmer prislistan, då Nook's Cranny öppnar nu.",
   },
   {
     hour: 12,
+    minute: 0,
     message:
       "Nu tömmer jag prislistan igen, eftersom priset förändras mitt på dagen.",
   },
   {
     hour: 22,
+    minute: 0,
     message: "Tömmer listan återigen eftersom Nook's Cranny stänger nu.",
   },
 ];
@@ -24,11 +27,13 @@ const SALE_PRICING_CLEAR = [
 const PURCHASE_PRICING_CLEAR = [
   {
     hour: 5,
+    minute: 0,
     message:
       "Nu blir det tomt i listan eftersom det är söndag och Daisy Mae kommer på besök!",
   },
   {
     hour: 12,
+    minute: 0,
     message: "Listan töms nu eftersom Daisy Mae drar vid klockan 12.",
   },
 ];
@@ -45,6 +50,7 @@ const lock = new AwaitLock();
 /**
  * @typedef {Object} ClearEntry
  * @prop {number} hour
+ * @prop {number} minute
  * @prop {string} message
  */
 
@@ -193,7 +199,7 @@ function setupTurnipPriceClearer(bot) {
   setInterval(async () => {
     const date = new Date();
     if (
-      isClearingHour(date) &&
+      isClearingTime(date) &&
       (!lastClear || lastClear.getHours() !== date.getHours())
     ) {
       await lock.acquireAsync();
@@ -229,7 +235,7 @@ function setupTurnipPriceClearer(bot) {
         lock.release();
       }
     }
-  }, 1000 * 10);
+  }, 1000 * 5);
 }
 
 function isPurchaseDay(date = new Date()) {
@@ -263,11 +269,14 @@ function getClearMessage(date) {
  * @param {Date} date
  * @return {boolean}
  */
-function isClearingHour(date) {
+function isClearingTime(date) {
   return (isPurchaseDay(date)
     ? PURCHASE_PRICING_CLEAR
     : SALE_PRICING_CLEAR
-  ).some(({ hour }) => hour === date.getHours());
+  ).some(
+    ({ hour, minute }) =>
+      hour === date.getHours() && minute === date.getMinutes()
+  );
 }
 
 module.exports = { registerTurnipPrice, setupTurnipPriceClearer };
