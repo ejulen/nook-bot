@@ -58,7 +58,9 @@ bot.on("messageCreate", async (message) => {
     (member) => member.user.id === bot.user.id
   );
   const commandPattern = new RegExp(
-    `^(\\${COMMAND_PREFIX}|<@(!|&)?(${bot.user.id}|${botMember.roles.join("|")})>\\s*)`
+    `^(\\${COMMAND_PREFIX}|<@(!|&)?(${bot.user.id}|${botMember.roles.join(
+      "|"
+    )})>\\s*)`
   );
 
   const content = message.content.trim();
@@ -100,6 +102,10 @@ för att se vad jag kan göra.`);
 
 bot.once("ready", () => {
   setupTurnipPriceClearer(bot);
+});
+
+bot.on("error", (err) => {
+  console.error(err);
 });
 
 bot.connect();
