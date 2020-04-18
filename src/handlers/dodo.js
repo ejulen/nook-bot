@@ -22,6 +22,7 @@ async function createDodoChannel(
       message.author.id
     );
     if (alreadyCreatedChannel) {
+      clearTimeout(closeTimers[alreadyCreatedChannel.id]);
       await message.channel.createMessage(
         `Eftersom du redan skapat en Dodo-kanal, ${message.author.mention}, kommer jag ändra koden till den befintliga istället.`
       );
