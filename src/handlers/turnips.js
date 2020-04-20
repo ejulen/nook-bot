@@ -40,6 +40,7 @@ const PURCHASE_PRICING_CLEAR = [
 const PURCHASE_DAY = 0; // Sunday
 
 const lock = new AwaitLock();
+let interval;
 
 /**
  * @typedef {Object} PriceEntry
@@ -196,7 +197,10 @@ async function updateTurnipPrices({
  */
 function setupTurnipPriceClearer(bot) {
   let lastClear;
-  setInterval(async () => {
+  if (interval) {
+    clearInterval(interval);
+  }
+  interval = setInterval(async () => {
     const date = new Date();
     if (
       isClearingTime(date) &&
