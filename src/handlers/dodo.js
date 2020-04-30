@@ -22,7 +22,7 @@ async function createDodoChannel(
       message.author.id
     );
     if (alreadyCreatedChannel) {
-      clearCloseTimer(closeTimers[alreadyCreatedChannel.id]);
+      clearCloseTimer(alreadyCreatedChannel.id);
       await message.channel.createMessage(
         `Eftersom du redan skapat en Dodo-kanal, ${message.author.mention}, kommer jag ändra koden till den befintliga istället.`
       );
@@ -145,7 +145,7 @@ async function cancelClosingDodoChannel({ message, guild }) {
   try {
     const dodoChannel = await getDodoChannelByUserId(guild, message.author.id);
     if (dodoChannel) {
-      clearCloseTimer(closeTimers[dodoChannel.id]);
+      clearCloseTimer(dodoChannel.id);
       await message.channel.createMessage(
         `Ok, ${message.author.mention}, jag har avbrutit stängningen.`
       );
