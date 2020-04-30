@@ -57,7 +57,7 @@ ${quote(cleanedDodoMessage)}`;
     } else {
       welcomeMessageText = `${message.author.mention} skapade den här kanalen.`;
     }
-    welcomeMessageText += `\n\nHen kan skriva\n\n${COMMAND_PREFIX}stäng\n\nför att stänga kanalen. För att avbryta stängningen kan hen skriva:\n\n${COMMAND_PREFIX}avbryt\n\nFör att uppdatera koden kan hen använda sig av samma kommando som man använder för att skapa en Dodo-kanal. Då kommer den här kanalen uppdateras istället.`;
+    welcomeMessageText += `\n\nHen kan skriva\n\n\`${COMMAND_PREFIX}stäng\`\n\nför att stänga kanalen. För att avbryta stängningen kan hen skriva:\n\n\`${COMMAND_PREFIX}avbryt\`\n\nFör att uppdatera koden kan hen använda sig av samma kommando som man använder för att skapa en Dodo-kanal. Då kommer den här kanalen uppdateras istället.`;
 
     const welcomeMessage = await newChannel.createMessage(welcomeMessageText);
     await welcomeMessage.pin();
