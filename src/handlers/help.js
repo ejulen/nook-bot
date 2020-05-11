@@ -1,9 +1,10 @@
 const { COMMAND_PREFIX } = require("../config");
+const { getPersonalityRoles } = require("./personality");
 
 /**
  * @type {import('../main').Handler}
  */
-async function help({ channel, bot }) {
+async function help({ channel, guild }) {
   await channel.createMessage(`Här är vad jag kan göra:
 
 **Skapa Dodo-kod-specifika kanaler:**
@@ -20,6 +21,9 @@ Det går bra att skriva fruktens namn på både svenska och engelska.
 **Ändra färgen på ditt användarnamn:**
 \`${COMMAND_PREFIX}färg färgnamn\`
 Till exempel: \`${COMMAND_PREFIX}färg lazy\`
+Tillgängliga färger: ${getPersonalityRoles(guild)
+    .map((role) => role.mention)
+    .join(", ")}
 
 **Hålla reda på vem som har de bästa turnip-priserna:**
 \`${COMMAND_PREFIX}turnip pris\`

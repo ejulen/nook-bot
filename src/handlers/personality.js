@@ -6,31 +6,38 @@ const personalityRoleNames = [
   "lazy",
   "uchi",
   "normal",
-  "smug"
+  "smug",
 ];
+
+/**
+ * @param {import('eris').Guild} guild
+ */
+function getPersonalityRoles(guild) {
+  return guild.roles.filter((role) => personalityRoleNames.includes(role.name));
+}
 
 /**
  * @type {import('../main').Handler}
  */
 async function changePersonality({ message, guild, channel }, { personality }) {
   try {
-    const personalityRoles = guild.roles.filter(role =>
-      personalityRoleNames.includes(role.name)
+    const personalityRoles = getPersonalityRoles(guild);
+    const soughtRole = personalityRoles.find(
+      (role) => role.name === personality
     );
-    const soughtRole = personalityRoles.find(role => role.name === personality);
     if (!soughtRole) {
       await channel.createMessage(
         `Ledsen, ${
           message.author.mention
         }, förstår inte vilken roll/färg du menar. Här är de som finns tillgängliga: ${personalityRoles
-          .map(role => role.mention)
+          .map((role) => role.mention)
           .join(", ")}`
       );
       return;
     }
 
     const previousPersonalityRole = guild.roles.find(
-      role =>
+      (role) =>
         personalityRoleNames.includes(role.name) &&
         message.member.roles.includes(role.id)
     );
@@ -51,4 +58,4 @@ async function changePersonality({ message, guild, channel }, { personality }) {
 
 changePersonality.PATTERN = /^(role|roll|personality|personlighet|color|färg) @?(?<personality>.+)/;
 
-module.exports = { changePersonality };
+module.exports = { changePersonality, getPersonalityRoles };
