@@ -94,7 +94,7 @@ bot.on("messageCreate", async (message) => {
     await message.channel
       .createMessage(`Hmm, ${message.author.mention}, nu förstod jag inte riktigt vad du menade. Du kan skriva
 
-${COMMAND_PREFIX}hjälp
+\`§${COMMAND_PREFIX}hjälp\`
 
 för att se vad jag kan göra.`);
   }
