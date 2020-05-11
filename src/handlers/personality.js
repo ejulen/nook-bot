@@ -20,6 +20,7 @@ function getPersonalityRoles(guild) {
  * @type {import('../main').Handler}
  */
 async function changePersonality({ message, guild, channel }, { personality }) {
+  personality = personality.toLowerCase();
   try {
     const personalityRoles = getPersonalityRoles(guild);
     const soughtRole = personalityRoles.find(
