@@ -37,7 +37,13 @@ const MESSAGE_ROUTER = [
  * @param {{[key: string]: string}} params
  */
 
-const bot = new Eris.Client(BOT_TOKEN);
+const bot = new Eris.Client(BOT_TOKEN, {
+  allowedMentions: {
+    everyone: false,
+    roles: false,
+    users: true,
+  },
+});
 
 bot.on("messageCreate", async (message) => {
   if (message.channel.type !== Eris.Constants.ChannelTypes.GUILD_TEXT) {
