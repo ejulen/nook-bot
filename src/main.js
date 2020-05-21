@@ -77,6 +77,7 @@ bot.on("messageCreate", async (message) => {
     for (let handler of MESSAGE_ROUTER) {
       const match = cleanedContent.match(handler.PATTERN);
       if (match) {
+        console.log(`Matched command: ${handler.name}`);
         try {
           await handler(
             {
