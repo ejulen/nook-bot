@@ -12,14 +12,14 @@ const closeTimers = {};
  * @type {import('../main').Handler}
  */
 async function createDodoChannel(
-  { message, guild, bot },
+  { message, guild },
   { dodoCode, dodoMessage }
 ) {
   await lock.acquireAsync();
   try {
-    const alreadyCreatedChannel = await getDodoChannelByUserId(
+    const alreadyCreatedChannel = await getDodoChannelByUser(
       guild,
-      message.author.id
+      message.author
     );
     if (alreadyCreatedChannel) {
       clearCloseTimer(alreadyCreatedChannel.id);
@@ -81,7 +81,7 @@ async function closeDodoChannel({ message, guild }) {
 
   await lock.acquireAsync();
   try {
-    dodoChannel = await getDodoChannelByUserId(guild, message.author.id);
+    dodoChannel = await getDodoChannelByUser(guild, message.author);
   } finally {
     lock.release();
   }
@@ -119,20 +119,31 @@ closeDodoChannel.PATTERN = /^(stäng|close)/i;
 
 /**
  * @param {import('eris').Guild} guild
- * @param {import('eris').User['id']} userId
+ * @param {import('eris').User} user
  * @return {Promise<import('eris').GuildTextableChannel?>}
  */
-async function getDodoChannelByUserId(guild, userId) {
+async function getDodoChannelByUser(guild, user) {
+  console.log(`Looking up already created Dodo channel by ${user.username}...`);
   const dodoChannels = guild.channels.filter(
     (channel) => channel.parentID === DODO_CATEGORY_ID
   );
+  console.log(
+    `Active Dodo channels: ${dodoChannels.map((c) => c.name).join(", ")}`
+  );
   for (let channel of dodoChannels) {
     if (channel.type === Eris.Constants.ChannelTypes.GUILD_TEXT) {
-      const initialPin = (await channel.getPins())[0];
+      const pins = await channel.getPins();
+      console.log(`Pins by: ${pins.map((p) => p.author.username).join(", ")}`);
+      const initialPin = pins[0];
+      console.log(
+        `Initial pin mentions: ${
+          initialPin && initialPin.mentions.map((m) => m.username).join(", ")
+        }`
+      );
       if (
         initialPin &&
         initialPin.mentions.length > 0 &&
-        initialPin.mentions[0].id === userId
+        initialPin.mentions[0].id === user.id
       ) {
         return channel;
       }
@@ -146,7 +157,7 @@ async function getDodoChannelByUserId(guild, userId) {
 async function cancelClosingDodoChannel({ message, guild }) {
   await lock.acquireAsync();
   try {
-    const dodoChannel = await getDodoChannelByUserId(guild, message.author.id);
+    const dodoChannel = await getDodoChannelByUser(guild, message.author);
     if (dodoChannel) {
       clearCloseTimer(dodoChannel.id);
       await message.channel.createMessage(
