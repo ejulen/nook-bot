@@ -134,7 +134,8 @@ async function getDodoChannelByUser(guild, user) {
     if (channel.type === Eris.Constants.ChannelTypes.GUILD_TEXT) {
       const pins = await channel.getPins();
       console.log(`Pins by: ${pins.map((p) => p.author.username).join(", ")}`);
-      const initialPin = pins[0];
+      // FIXME: Workaround for mentions missing in pinned messages gotten via getPins().
+      const initialPin = await channel.getMessage(pins[0].id);
       console.log(
         `Initial pin mentions: ${
           initialPin && initialPin.mentions.map((m) => m.username).join(", ")
