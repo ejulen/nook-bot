@@ -87,6 +87,9 @@ async function closeDodoChannel({ message, guild }) {
   }
 
   if (!dodoChannel) {
+    await message.channel.createMessage(
+      `Hmm, ${message.author.mention}, jag hittar inte nån Dodo-kanal som du skapat.`
+    );
     return;
   }
 
@@ -112,7 +115,7 @@ async function closeDodoChannel({ message, guild }) {
   }, 5 * 60 * 1000);
 }
 
-closeDodoChannel.PATTERN = /^stäng/i;
+closeDodoChannel.PATTERN = /^(stäng|close)/i;
 
 /**
  * @param {import('eris').Guild} guild
