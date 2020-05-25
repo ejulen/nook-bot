@@ -44,6 +44,7 @@ async function createDodoChannel(
       Eris.Constants.ChannelTypes.GUILD_TEXT,
       {
         parentID: DODO_CATEGORY_ID,
+        topic: `En Dodo-kanal skapad av ${message.author.mention}`,
       }
     );
 
@@ -132,6 +133,10 @@ async function getDodoChannelByUser(guild, user) {
   );
   for (let channel of dodoChannels) {
     if (channel.type === Eris.Constants.ChannelTypes.GUILD_TEXT) {
+      if (channel.topic && channel.topic.includes(user.mention)) {
+        console.log(`Found user's Dodo channel by topic mention.`);
+        return channel;
+      }
       const pins = await channel.getPins();
       console.log(`Pins by: ${pins.map((p) => p.author.username).join(", ")}`);
       // FIXME: Workaround for mentions missing in pinned messages gotten via getPins().
