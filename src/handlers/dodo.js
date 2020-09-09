@@ -137,6 +137,7 @@ async function getDodoChannelByUser(guild, user) {
         console.log(`Found user's Dodo channel by topic mention.`);
         return channel;
       }
+      // TODO: Remove this fallback.
       const pins = await channel.getPins();
       console.log(`Pins by: ${pins.map((p) => p.author.username).join(", ")}`);
       // FIXME: Workaround for mentions missing in pinned messages gotten via getPins().
