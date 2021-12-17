@@ -221,7 +221,11 @@ function setupTurnipPriceClearer(bot) {
           );
           return;
         }
-        await turnipChannel.createMessage(getClearMessage(date));
+        const pinnedMessage = await getTurnipPricesMessage({ bot, channel: turnipChannel });
+        const currentPrices = parseTurnipMessage(pinnedMessage.content);
+        if (currentPrices.length > 0) {
+          await turnipChannel.createMessage(getClearMessage(date));
+        }
         await updateTurnipPrices({
           bot,
           channel: turnipChannel,
